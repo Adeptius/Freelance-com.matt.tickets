@@ -1,6 +1,9 @@
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author adeptius
+ */
 public class Utilites {
 
     private static final Random randomTicket = new Random();

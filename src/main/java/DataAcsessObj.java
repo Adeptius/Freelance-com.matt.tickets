@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author adeptius
+ */
 public class DataAcsessObj {
 
     private static Connection connection;
