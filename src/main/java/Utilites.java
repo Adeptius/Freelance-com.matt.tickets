@@ -8,6 +8,25 @@ public class Utilites {
 
     private static final Random randomTicket = new Random();
 
+
+    public static List<HashSet<String>> getMassiveOfStrings(HashSet<String> stringHashSet){
+        List<HashSet<String>> massiveOfStrings = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            HashSet<String> current = new LinkedHashSet<>();
+            for (String s : stringHashSet) {
+                if (i<10){
+                    if (s.contains(String.valueOf("0"+i)))
+                        current.add(s);
+                }else {
+                    if (s.contains(String.valueOf(i)))
+                        current.add(s);
+                }
+            }
+            massiveOfStrings.add(current);
+        }
+        return massiveOfStrings;
+    }
+
     /**
      * This method cutting hash set to fife numbers.
      * So we can use method .contains to find very similiar tickets.
@@ -65,5 +84,16 @@ public class Utilites {
         int random = randomTicket.nextInt(53) + 1;
         if (random < 10) return String.valueOf("0"+random);
         return String.valueOf(random);
+    }
+
+    public static String[] getBytesFromString(String ticket){
+        String[] str = new String[6];
+        str[0] = ticket.substring(0, 2);
+        str[1] = ticket.substring(3, 5);
+        str[2] = ticket.substring(6, 8);
+        str[3] = ticket.substring(9, 11);
+        str[4] = ticket.substring(12, 14);
+        str[5] = ticket.substring(15, 17);
+        return str;
     }
 }

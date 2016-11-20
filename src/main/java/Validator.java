@@ -14,6 +14,7 @@ public class Validator {
     private static DataAcsessObj acsessObj;
     private HashSet<String> cuttedToFiveNumbers;
     private HashMap<String, Integer> MapWithThreeNumbers;
+    private List<HashSet<String>> massiveOfStrings;
 
     public static void main(String[] args) throws PropertyVetoException, SQLException {
         Validator validator = new Validator();
@@ -25,8 +26,9 @@ public class Validator {
     private void prepare() throws SQLException, PropertyVetoException {
         HashSet<String> noCuttedHashSet = acsessObj.getHashSetFromDB();
         long t0 = System.nanoTime();
-        cuttedToFiveNumbers = Utilites.cutToFiveNumbers(noCuttedHashSet);
-        MapWithThreeNumbers = Utilites.createMapForThreeNumbers(noCuttedHashSet);
+//        cuttedToFiveNumbers = Utilites.cutToFiveNumbers(noCuttedHashSet);
+//        MapWithThreeNumbers = Utilites.createMapForThreeNumbers(noCuttedHashSet);
+        massiveOfStrings = Utilites.getMassiveOfStrings(noCuttedHashSet);
         long t1 = System.nanoTime();
         long millis = TimeUnit.NANOSECONDS.toMillis(t1 - t0);
         System.out.printf("Preparing takes: %d millis%n", millis);
@@ -35,7 +37,18 @@ public class Validator {
     private void test() throws SQLException {
         List<String> listOfTickets = Utilites.createTickets(50000);
         //listOfTickets.forEach(System.out::println);
-        validateListOfTickets(listOfTickets);
+        //validateListOfTickets(listOfTickets);
+        //testIsValidTicket("02-15-17-18-45-46");
+
+        //massiveOfStrings.get(30).forEach(System.out::println);
+        //System.out.println(massiveOfStrings.get(20).size());
+        // 04-27-32-48-52-53
+        System.out.println(isFiveMachesDigit("04-06-15-34-35-49"));
+        long t0 = System.nanoTime();
+        //validateListOfTickets(listOfTickets);
+        long t1 = System.nanoTime();
+        long millis = TimeUnit.NANOSECONDS.toMillis(t1 - t0);
+        System.out.printf("Test time: %d millis%n", millis);
 
     }
 
@@ -64,13 +77,7 @@ public class Validator {
             //System.out.printf("%s has invalid numbers%n", ticket);
             return false;
         }
-        if (isTicketMachesGreaterThanFourDigit(ticket)) {
-            //System.out.printf("%s has matches greater than 4 digits%n", ticket);
-            return false;
-        }
-        int similiarTicketsCount = howManyMatchesByThreeDigits(ticket);
-        if (similiarTicketsCount > 5) {
-            //System.out.printf("%s has matches 3 digits %d times%n", ticket, similiarTicketsCount);
+        if (isFiveMachesDigit(ticket)){
             return false;
         }
         return true;
@@ -92,12 +99,37 @@ public class Validator {
         return false;
     }
 
-    private boolean isTicketMachesGreaterThanFourDigit(String ticket) {
-        return cuttedToFiveNumbers.contains(ticket.substring(0, 14));
-    }
+    @SuppressWarnings("Duplicates")
+    private boolean isFiveMachesDigit(String ticket) {
+        int count;
+        String[] str = Utilites.getBytesFromString(ticket);
+        HashSet<String> hash = massiveOfStrings.get(Integer.valueOf(str[0]));
+        count = 1;
+        for (String s : hash) {
+            for (int i = 1; i < 6; i++) {
+                if (s.contains(String.valueOf(str[i]))){
+                    count++;
+                    if (count==5){
+                        return true;
+                    }
+                }
+            }
+            count = 1;
+        }
 
-    private int howManyMatchesByThreeDigits(String ticket) {
-        if (!MapWithThreeNumbers.containsKey(ticket.substring(0, 8))) return 0;
-        return MapWithThreeNumbers.get(ticket.substring(0, 8));
+        hash = massiveOfStrings.get(Integer.valueOf(str[5]));
+        count = 1;
+        for (String s : hash) {
+            for (int i = 4; i >= 0; i--) {
+                if (s.contains(String.valueOf(str[i]))) {
+                    count++;
+                    if (count == 5) {
+                        return true;
+                    }
+                }
+            }
+            count = 1;
+        }
+        return false;
     }
 }
