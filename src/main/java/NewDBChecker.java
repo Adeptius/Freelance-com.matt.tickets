@@ -30,7 +30,6 @@ public class NewDBChecker {
         System.out.printf("Preparing takes: %d millis%n", millis);
     }
 
-
     private void test() throws SQLException {
         List<String> listOfTickets = Utilites.createTickets(50000);
         //listOfTickets.forEach(System.out::println);
@@ -40,11 +39,6 @@ public class NewDBChecker {
             if (testIsValidTicket(listOfTicket))
                 System.out.println(listOfTicket);
         }
-
-
-
-
-
         long t1 = System.nanoTime();
         long millis = TimeUnit.NANOSECONDS.toMillis(t1-t0);
         System.out.printf("Testing time: %d millis%n", millis);

@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 public class Utilites {
 
     private static final Random randomTicket = new Random();
+
     /**
      * This method cutting hash set to fife numbers.
      * So we can use method .contains to find very similiar tickets.
@@ -34,6 +35,11 @@ public class Utilites {
         return map;
     }
 
+    /**
+     * Just creating randomly numbers
+     * @param count - count of numbers
+     * @return numbers as list
+     */
     public static List<String> createTickets(int count){
         long t0 = System.nanoTime();
         List<String> listOfTickets = new ArrayList<>();

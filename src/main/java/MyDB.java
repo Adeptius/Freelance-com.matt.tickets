@@ -7,7 +7,6 @@
 import java.beans.PropertyVetoException;
 import java.sql.*;
 import java.util.ArrayList;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
  * @author math305
@@ -18,7 +17,6 @@ public final class MyDB {
     private static String dbUser = "root";
     private static String dbPass = "357159";
     private static MyDB instance;
-    private ComboPooledDataSource cpds;
 
 
     public static MyDB getInstance() {
@@ -26,23 +24,12 @@ public final class MyDB {
     }
 
     private MyDB() throws PropertyVetoException {
-//        try {
-//            myConn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-        cpds = new ComboPooledDataSource();
-        cpds.setDriverClass("com.mysql.jdbc.Driver");
-        cpds.setJdbcUrl(dbUrl);
-        cpds.setUser(dbUser);
-        cpds.setPassword(dbPass);
-        cpds.setMinPoolSize(10);
-        cpds.setMaxPoolSize(10);
-        cpds.setAcquireIncrement(0);
-    }
+        try {
+            myConn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-    private Connection getConnection() throws SQLException {
-        return cpds.getConnection();
     }
 
     static {
@@ -104,17 +91,15 @@ public final class MyDB {
     private int isTicketsAllowed(String str) {
         int response = -1;
         try {
-            Connection connection = getConnection();
-            CallableStatement cStmt = connection.prepareCall("call CheckTicketWrapper(?)");
+            CallableStatement cStmt = myConn.prepareCall("call CheckTicketWrapper(?)");
             cStmt.setString(1, str);
             cStmt.execute();
             ResultSet rs = cStmt.getResultSet();
 
-
             if (rs.next()) {
                 response = rs.getInt("v_IsValid");
             }
-            connection.close();
+            myConn.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
