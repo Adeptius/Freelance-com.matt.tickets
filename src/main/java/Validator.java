@@ -1,7 +1,6 @@
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -9,12 +8,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author adeptius
  */
+@SuppressWarnings("Duplicates")
 public class Validator {
 
     private static DataAcsessObj acsessObj;
-    private HashSet<String> cuttedToFiveNumbers;
-    private HashMap<String, Integer> MapWithThreeNumbers;
     private List<HashSet<String>> massiveOfStrings;
+    private HashSet<String> noCuttedHashSet;
 
     public static void main(String[] args) throws PropertyVetoException, SQLException {
         Validator validator = new Validator();
@@ -24,10 +23,8 @@ public class Validator {
     }
 
     private void prepare() throws SQLException, PropertyVetoException {
-        HashSet<String> noCuttedHashSet = acsessObj.getHashSetFromDB();
+        noCuttedHashSet = acsessObj.getHashSetFromDB();
         long t0 = System.nanoTime();
-//        cuttedToFiveNumbers = Utilites.cutToFiveNumbers(noCuttedHashSet);
-//        MapWithThreeNumbers = Utilites.createMapForThreeNumbers(noCuttedHashSet);
         massiveOfStrings = Utilites.getMassiveOfStrings(noCuttedHashSet);
         long t1 = System.nanoTime();
         long millis = TimeUnit.NANOSECONDS.toMillis(t1 - t0);
@@ -36,52 +33,41 @@ public class Validator {
 
     private void test() throws SQLException {
         List<String> listOfTickets = Utilites.createTickets(50000);
-        //listOfTickets.forEach(System.out::println);
-        //validateListOfTickets(listOfTickets);
-        //testIsValidTicket("02-15-17-18-45-46");
+        separateByThreads(listOfTickets,4);
+    }
 
-        //massiveOfStrings.get(30).forEach(System.out::println);
-        //System.out.println(massiveOfStrings.get(20).size());
-        // 04-27-32-48-52-53
-        System.out.println(isFiveMachesDigit("04-06-15-34-35-49"));
-        long t0 = System.nanoTime();
-        //validateListOfTickets(listOfTickets);
-        long t1 = System.nanoTime();
-        long millis = TimeUnit.NANOSECONDS.toMillis(t1 - t0);
-        System.out.printf("Test time: %d millis%n", millis);
-
+    private void separateByThreads(List<String> tickets, int numberOfThreads){
+        List<List<String>> splitedList = Utilites.splitList(tickets, numberOfThreads);
+        for (int i = 0; i < numberOfThreads; i++) {
+            final int a = i;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    validateListOfTickets(splitedList.get(a));
+                }
+            }).start();
+        }
     }
 
     private List<String> validateListOfTickets(List<String> tickets) {
-        long t0 = System.nanoTime();
         List<String> validTickets = new ArrayList<>();
         for (String ticket : tickets) {
-            if (testIsValidTicket(ticket)) {
-                System.out.println(ticket);
+            if (isValidTicket(ticket)) {
                 validTickets.add(ticket);
+                System.out.println(ticket);
             }
         }
-        long t1 = System.nanoTime();
-        long millis = TimeUnit.NANOSECONDS.toMillis(t1 - t0);
-        System.out.printf("Validating time: %d millis%n", millis);
-        System.out.printf("There is: %d valid tickets%n", validTickets.size());
         return validTickets;
     }
 
-    private boolean testIsValidTicket(String ticket) {
-        if (!isTicketMachesWithPattern(ticket)) {
-            //System.out.printf("%s not maches by pattern%n", ticket);
-            return false;
-        }
-        if (!isTickerHaveValidNumbers(ticket)) {
-            //System.out.printf("%s has invalid numbers%n", ticket);
-            return false;
-        }
-        if (isFiveMachesDigit(ticket)){
-            return false;
-        }
+    private boolean isValidTicket(String ticket) {
+        if (!isTicketMachesWithPattern(ticket)) return false;
+        if (!isTickerHaveValidNumbers(ticket)) return false;
+        if (isFiveMachesDigit(ticket)) return false;
+        if (!isNoManyOfThreeDigits(ticket))return false;
         return true;
     }
+
 
     private boolean isTicketMachesWithPattern(String ticket) {
         return ticket.matches("\\d\\d-\\d\\d-\\d\\d-\\d\\d-\\d\\d-\\d\\d");
@@ -99,17 +85,17 @@ public class Validator {
         return false;
     }
 
-    @SuppressWarnings("Duplicates")
+
     private boolean isFiveMachesDigit(String ticket) {
         int count;
-        String[] str = Utilites.getBytesFromString(ticket);
+        String[] str = Utilites.getMassiveFromString(ticket);
         HashSet<String> hash = massiveOfStrings.get(Integer.valueOf(str[0]));
         count = 1;
         for (String s : hash) {
             for (int i = 1; i < 6; i++) {
-                if (s.contains(String.valueOf(str[i]))){
+                if (s.contains(String.valueOf(str[i]))) {
                     count++;
-                    if (count==5){
+                    if (count == 5) {
                         return true;
                     }
                 }
@@ -131,5 +117,25 @@ public class Validator {
             count = 1;
         }
         return false;
+    }
+
+    public boolean isNoManyOfThreeDigits(String ticket) {
+        String[] str = Utilites.getMassiveFromString(ticket);
+        int count = 0;
+        for (String s : noCuttedHashSet) {
+            int tempCount = 0;
+            for (int i = 0; i < 6; i++) {
+                if (s.contains(str[i])) {
+                    tempCount++;
+                    if (tempCount>3){
+                        count++;
+                        if (count == 6)
+                            return false;
+                        break;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }
