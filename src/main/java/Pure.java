@@ -5,19 +5,14 @@
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * @author scifct
  */
+@SuppressWarnings("Duplicates")
 public class Pure {
 
     private Scanner input;
@@ -96,10 +91,8 @@ public class Pure {
         } else if (ints.size() == 4) {
             listStr = getNewTicket2(ints);
         }
-        MyDB db = MyDB.getInstance();
+
         System.out.println(listStr.size() + " : " + System.currentTimeMillis());
-        String oneTicket = null;
-        
         /* Option 2 - Do it in group takes 116 seconds 
         ArrayList<String> tickets = db.checkPureTicketsInDB(listStr);
         for(int i =0; i < tickets.size(); i++){
@@ -108,17 +101,37 @@ public class Pure {
             System.out.println(" "+checkTicket(transformIntArryToString(integers)));
         }*/
         System.out.println(listStr.size() + " : " + System.currentTimeMillis());
-        for (int i = 0; i < listStr.size(); i++) {
-            oneTicket = db.checkPureTicketInDB(listStr.get(i));
-            if (oneTicket != null) {
-                List<Integer> integers = convertStringToIntArr(oneTicket);
-                Collections.sort(integers);
-                System.out.println(" " + checkTicket(transformIntArryToString(integers)));
-            }
+
+
+        int cores = MyDB.NUMBER_OF_CORES;
+        final List<List<String>> splittedList = splitList(listStr, cores);
+        for (List<String> list2 : splittedList) {
+            final List<String> list = list2;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    MyDB db = MyDB.getInstance();
+                    String oneTicket;
+                    for (int i = 0; i < list.size(); i++) {
+                        oneTicket = db.checkPureTicketInDB(list.get(i));
+                        if (oneTicket != null) {
+                            List<Integer> integers = convertStringToIntArr(oneTicket);
+                            Collections.sort(integers);
+                            System.out.println(" " + checkTicket(transformIntArryToString(integers)));
+                        }
+                    }
+                }
+            }).start();
         }
+    }
 
-
-        System.out.println(listStr.size() + " : " + System.currentTimeMillis());
+    public static List<List<String>> splitList(List<String> originalList, int numberOfLists) {
+        int partitionSize = 1+ (originalList.size() / numberOfLists);
+        List<List<String>> partitions = new LinkedList<>();
+        for (int i = 0; i < originalList.size(); i += partitionSize) {
+            partitions.add(originalList.subList(i, Math.min(i + partitionSize, originalList.size())));
+        }
+        return partitions;
     }
 
     public void getUniqueNumberFromArray1(int[] myintArray) {

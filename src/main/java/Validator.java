@@ -33,17 +33,25 @@ public class Validator {
 
     private void test() throws SQLException {
         List<String> listOfTickets = Utilites.createTickets(50000);
+        //System.out.println(isValidTicket("12-18-24-25-36-45"));
         separateByThreads(listOfTickets,4);
+
     }
 
     private void separateByThreads(List<String> tickets, int numberOfThreads){
-        List<List<String>> splitedList = Utilites.splitList(tickets, numberOfThreads);
+        final List<List<String>> splitedList = Utilites.splitList(tickets, numberOfThreads);
         for (int i = 0; i < numberOfThreads; i++) {
             final int a = i;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    validateListOfTickets(splitedList.get(a));
+                    List<String> valid = validateListOfTickets(splitedList.get(a));
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(valid.size());
                 }
             }).start();
         }
@@ -129,7 +137,7 @@ public class Validator {
                     tempCount++;
                     if (tempCount>3){
                         count++;
-                        if (count == 6)
+                        if (count == 5)
                             return false;
                         break;
                     }

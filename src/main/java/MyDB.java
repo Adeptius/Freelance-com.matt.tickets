@@ -4,6 +4,8 @@
  * and open the template in the editor.
  */
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+
 import java.beans.PropertyVetoException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -13,10 +15,12 @@ import java.util.ArrayList;
  */
 public final class MyDB {
     private static Connection myConn;
+    private static MyDB instance;
     private static String dbUrl = "jdbc:mysql://127.0.0.1:3306/lotto?autoReconnect=true&useSSL=false";  //192.168.56.101
     private static String dbUser = "root";
     private static String dbPass = "357159";
-    private static MyDB instance;
+    private static ComboPooledDataSource cpds;
+    public static final int NUMBER_OF_CORES = 4;
 
 
     public static MyDB getInstance() {
@@ -24,13 +28,22 @@ public final class MyDB {
     }
 
     private MyDB() throws PropertyVetoException {
-        try {
-            myConn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+//        try {
+//            myConn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        cpds = new ComboPooledDataSource();
+        cpds.setDriverClass("com.mysql.jdbc.Driver");
+        cpds.setJdbcUrl(dbUrl);
+        cpds.setUser(dbUser);
+        cpds.setPassword(dbPass);
+        cpds.setMinPoolSize(NUMBER_OF_CORES + 1);
+        cpds.setMaxPoolSize(NUMBER_OF_CORES + 1);
+        cpds.setAcquireIncrement(0);
     }
+
+
 
     static {
         try {
@@ -91,7 +104,8 @@ public final class MyDB {
     private int isTicketsAllowed(String str) {
         int response = -1;
         try {
-            CallableStatement cStmt = myConn.prepareCall("call CheckTicketWrapper(?)");
+            Connection connection = cpds.getConnection();
+            CallableStatement cStmt = connection.prepareCall("call CheckTicketWrapper(?)");
             cStmt.setString(1, str);
             cStmt.execute();
             ResultSet rs = cStmt.getResultSet();
@@ -99,7 +113,7 @@ public final class MyDB {
             if (rs.next()) {
                 response = rs.getInt("v_IsValid");
             }
-            myConn.close();
+            connection.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

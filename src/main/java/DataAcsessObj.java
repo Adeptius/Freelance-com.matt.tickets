@@ -14,7 +14,7 @@ public class DataAcsessObj {
     private void init() throws SQLException {
         String dbUrl = "jdbc:mysql://127.0.0.1:3306/lotto?autoReconnect=true&useSSL=false";
         String dbUser = "root";
-        String dbPass = "password";
+        String dbPass = "357159";
         connection = DriverManager.getConnection(dbUrl, dbUser, dbPass);
     }
 
